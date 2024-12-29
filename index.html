@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot</title>
+    <title>Self-Hosted AI Chatbot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,9 +11,9 @@
             margin-top: 50px;
         }
         .chat-container {
-            width: 100%;
+            width: 90%;
             max-width: 500px;
-            margin: 0 auto;
+            margin: auto;
             text-align: left;
             border: 1px solid #ccc;
             border-radius: 10px;
@@ -23,7 +23,6 @@
         .chat-log {
             height: 300px;
             overflow-y: auto;
-            margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
             padding: 10px;
@@ -41,63 +40,53 @@
             color: green;
         }
         input {
-            width: calc(100% - 100px);
+            width: calc(100% - 80px);
             padding: 10px;
             font-size: 16px;
         }
         button {
             padding: 10px;
             font-size: 16px;
-            margin-left: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>AI Chatbot</h1>
+    <h1>Self-Hosted AI Chatbot</h1>
     <div class="chat-container">
         <div class="chat-log" id="chatLog"></div>
         <input type="text" id="userInput" placeholder="Type your message..." />
-        <button onclick="sendMessage()">Send</button>
+        <button onclick="handleUserInput()">Send</button>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@huggingface/transformers"></script>
     <script>
+        let model;
         const chatLog = document.getElementById('chatLog');
 
-        async function sendMessage() {
+        async function loadModel() {
+            chatLog.innerHTML = `<div class="bot">Loading model...</div>`;
+            model = await window.transformers.pipeline('text2text-generation', 't5-small');
+            chatLog.innerHTML = `<div class="bot">Model loaded. Ask me anything!</div>`;
+        }
+
+        async function handleUserInput() {
             const userInput = document.getElementById('userInput').value;
             if (!userInput) return;
 
-            // Display the user's message
+            // Display user's message
             chatLog.innerHTML += `<div class="user"><strong>You:</strong> ${userInput}</div>`;
             document.getElementById('userInput').value = '';
+
+            // Get bot's response
+            const botResponse = await model(userInput);
+
+            // Display bot's response
+            chatLog.innerHTML += `<div class="bot"><strong>Bot:</strong> ${botResponse[0].generated_text}</div>`;
             chatLog.scrollTop = chatLog.scrollHeight;
-
-            // Call the AI API (replace with your API key and endpoint)
-            const apiKey = 'YOUR_OPENAI_API_KEY'; // Replace with your API key
-            const apiUrl = 'https://api.openai.com/v1/chat/completions';
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            };
-            const body = JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [{ role: "user", content: userInput }]
-            });
-
-            try {
-                const response = await fetch(apiUrl, { method: 'POST', headers, body });
-                const data = await response.json();
-                const botReply = data.choices[0].message.content;
-
-                // Display the bot's response
-                chatLog.innerHTML += `<div class="bot"><strong>Bot:</strong> ${botReply}</div>`;
-                chatLog.scrollTop = chatLog.scrollHeight;
-            } catch (error) {
-                chatLog.innerHTML += `<div class="bot"><strong>Bot:</strong> Sorry, there was an error processing your message.</div>`;
-                chatLog.scrollTop = chatLog.scrollHeight;
-                console.error('Error:', error);
-            }
         }
+
+        loadModel();
     </script>
 </body>
 </html>
