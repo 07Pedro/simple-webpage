@@ -3,37 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Webpage</title>
+    <title>AI Chatbot</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
         }
-        input {
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: left;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .chat-log {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             padding: 10px;
-            width: 300px;
+            background-color: #fff;
+        }
+        .chat-log div {
+            margin: 5px 0;
+        }
+        .chat-log .user {
+            text-align: right;
+            color: blue;
+        }
+        .chat-log .bot {
+            text-align: left;
+            color: green;
+        }
+        input {
+            width: calc(100% - 100px);
+            padding: 10px;
             font-size: 16px;
         }
-        .output {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #333;
+        button {
+            padding: 10px;
+            font-size: 16px;
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Input and Output Demo</h1>
-    <input type="text" id="userInput" placeholder="Type something..." />
-    <div class="output" id="output"></div>
+    <h1>AI Chatbot</h1>
+    <div class="chat-container">
+        <div class="chat-log" id="chatLog"></div>
+        <input type="text" id="userInput" placeholder="Type your message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
 
     <script>
-        const inputField = document.getElementById('userInput');
-        const outputDiv = document.getElementById('output');
+        const chatLog = document.getElementById('chatLog');
 
-        inputField.addEventListener('input', () => {
-            outputDiv.textContent = inputField.value;
-        });
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value;
+            if (!userInput) return;
+
+            // Display the user's message
+            chatLog.innerHTML += `<div class="user"><strong>You:</strong> ${userInput}</div>`;
+            document.getElementById('userInput').value = '';
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            // Call the AI API (replace with your API key and endpoint)
+            const apiKey = 'YOUR_OPENAI_API_KEY'; // Replace with your API key
+            const apiUrl = 'https://api.openai.com/v1/chat/completions';
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            };
+            const body = JSON.stringify({
+                model: "gpt-3.5-turbo",
+                messages: [{ role: "user", content: userInput }]
+            });
+
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers, body });
+                const data = await response.json();
+                const botReply = data.choices[0].message.content;
+
+                // Display the bot's response
+                chatLog.innerHTML += `<div class="bot"><strong>Bot:</strong> ${botReply}</div>`;
+                chatLog.scrollTop = chatLog.scrollHeight;
+            } catch (error) {
+                chatLog.innerHTML += `<div class="bot"><strong>Bot:</strong> Sorry, there was an error processing your message.</div>`;
+                chatLog.scrollTop = chatLog.scrollHeight;
+                console.error('Error:', error);
+            }
+        }
     </script>
 </body>
 </html>
